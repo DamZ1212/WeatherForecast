@@ -9,11 +9,17 @@
 import Foundation
 import Network
 
+// View protocol
 protocol WeatherForecastView
 {
     func setDailyForecasts(_ forecasts: [DailyForecastData]?)
 }
 
+/* Main presenter
+ Create the service that communicate with data suppliers
+ Create the model to store the data
+ Communicate with the link view to push BO to show
+ */
 class WeatherForecastPresenter
 {
     let weatherForecastService : WeatherForecastRequestService
@@ -25,6 +31,7 @@ class WeatherForecastPresenter
     init() {
         self.weatherForecastService = WeatherForecastRequestService()
         self.weatherForecastData = WeatherForecastData()
+        // At creation, load from disk
         self.weatherForecastData.loadFromDisk()
     }
     
@@ -36,45 +43,52 @@ class WeatherForecastPresenter
         weatherForecastView = nil
     }
     
-    // Replace with promises help with the flow
+    // Try to retrieve forecasts according to a GPS (longitude, latitute) location
     func getDailyWeatherForecastsForLocation(location: String){
         
-        // If connexion not available, ask for the model to load data from disk
-        // return an array of forecasts.
-        // can return an empty array, if so show alert to the user
+        // Check if internet connexion is available
         if let path = Reachability.instance.currentPath, path.status == .satisfied
         {
+            // if so, ask the weather forecast service to give us a list of forecasts
             weatherForecastService.getWeatherForecastsForLocation(location: location)
             {
                 (hourlyForecasts: [HourlyWeatherForecast]?) in
+                // We got some forecasts
                 if let forecasts = hourlyForecasts, forecasts.isEmpty == false
                 {
+                    // Cleanup the previously stored data
                     self.weatherForecastData.cleanUp()
+                    // Add each forecast to the model
                     for forecast in forecasts
                     {
                         self.weatherForecastData.addHourlyForecast(forecast: forecast)
                     }
+                    // Save the model on disk
                     self.weatherForecastData.saveOnDisk()
+                    // Create the daily forecast BO to be used by the views
                     self.dailyForeCasts = WeatherForecastBO.getDailyForecastData(data: self.weatherForecastData.hourlyWeatherForecasts)
+                    // Ask the view to show the actual data
                     self.weatherForecastView?.setDailyForecasts(self.dailyForeCasts!)
                 }
                 else
                 {
                     // No data has been received, could be a timeout, could be no data at all
-                    // try to show what's in the save anyway (possibly loaded from disk)
+                    // Fallbacking on the local save if available
                     if self.weatherForecastData.hourlyWeatherForecasts.isEmpty == false
                     {
+                        // Local save is available
                         self.dailyForeCasts = WeatherForecastBO.getDailyForecastData(data: self.weatherForecastData.hourlyWeatherForecasts)
                         self.weatherForecastView?.setDailyForecasts(self.dailyForeCasts!)
                     }
+                    // No data in the save
                     else
                     {
-                        // No data to show at all...
                         self.weatherForecastView?.setDailyForecasts(nil)
                     }
                 }
             }
         }
+            // NO internet, try to show saved data
         else
         {
             if self.weatherForecastData.hourlyWeatherForecasts.isEmpty == false
@@ -88,9 +102,5 @@ class WeatherForecastPresenter
                 self.weatherForecastView?.setDailyForecasts(nil)
             }
         }
-    }
-    
-    func getWeatherForecastForDay(date: Date)
-    {
     }
 }

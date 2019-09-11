@@ -9,8 +9,13 @@
 import Foundation
 import os.log
 
+/* Hourly Forecast
+ Raw data coming from the API
+ Implementing all NSCoding methods to be encodable in the UserDefaults
+ */
 class HourlyWeatherForecast : NSObject, NSCoding
 {
+    // Properties for userdefaults save
     struct PropertyKey
     {
         static let Date = "date"
@@ -49,6 +54,7 @@ class HourlyWeatherForecast : NSObject, NSCoding
         self.wind_force = wind_force
     }
     
+    // Parsing from JSON data
     func parseData(_ data: [String:Any])
     {
         if let temperature = data["temperature"] as? [String:Any]
@@ -81,8 +87,8 @@ class HourlyWeatherForecast : NSObject, NSCoding
         }
     }
     
+    // Encode with NSCode
     func encode(with aCoder: NSCoder) {
-        print(self)
         aCoder.encode(date, forKey: PropertyKey.Date)
         aCoder.encode(temperature, forKey: PropertyKey.Temperature)
         aCoder.encode(rain, forKey: PropertyKey.Rain)
@@ -93,6 +99,7 @@ class HourlyWeatherForecast : NSObject, NSCoding
         aCoder.encode(wind_force, forKey: PropertyKey.WindForce)
     }
     
+    // Decode with NSCoder
     required convenience init?(coder aDecoder: NSCoder) {
         let decodedDate = aDecoder.decodeObject(forKey: PropertyKey.Date) as! Date
         let decodedTemp = aDecoder.decodeObject(forKey: PropertyKey.Temperature) as? Double ?? 0
@@ -106,15 +113,13 @@ class HourlyWeatherForecast : NSObject, NSCoding
         self.init(date: decodedDate, temperature: decodedTemp, rain: decodedRain, pressure: decodedPressure, humidity: decodedHumidity, nebulosity: decodedNebulosity, wind_direction: decodedWindDir, wind_force: decodedWindForce)
     }
     
+    // ToString
     override var description: String { return String("Date: \(date), Temperature: \(temperature), Rain: \(rain), Pressure: \(pressure), Humidity: \(humidity), Nebulosity: \(nebulosity), Wind direction: \(wind_direction), Wind Force: \(wind_force)") }
 }
 
+/* Utility class for data storage and local save */
 class WeatherForecastData
 {
-    static let DocumentsDirectory = FileManager().urls(for: .documentDirectory, in: .userDomainMask).first!
-    static let ForecastDataURL = DocumentsDirectory.appendingPathComponent("forecasts")
-    static let UserDefaultKey = "WeatherForecastData"
-    
     var hourlyWeatherForecasts : [HourlyWeatherForecast]
     
     init()
@@ -132,12 +137,13 @@ class WeatherForecastData
         hourlyWeatherForecasts.removeAll()
     }
     
+    // Save current data on disk
     func saveOnDisk()
     {
         do {
             let data = try NSKeyedArchiver.archivedData(withRootObject: self.hourlyWeatherForecasts as Any, requiringSecureCoding: false)
-            try data.write(to: WeatherForecastData.ForecastDataURL)
-            UserDefaults.standard.set(data, forKey: WeatherForecastData.UserDefaultKey)
+            try data.write(to: GlobalConstants.LocalSave.DataURL)
+            UserDefaults.standard.set(data, forKey: GlobalConstants.LocalSave.UserDefaultKey)
             os_log("Forecasts successfully saved.", log: OSLog.default, type: .debug)
         }
         catch
@@ -146,9 +152,10 @@ class WeatherForecastData
         }
     }
     
+    // Load data from disk
     func loadFromDisk()
     {
-        if let unarchivedObject = UserDefaults.standard.data(forKey: WeatherForecastData.UserDefaultKey)
+        if let unarchivedObject = UserDefaults.standard.data(forKey: GlobalConstants.LocalSave.UserDefaultKey)
         {
             do {
                 try self.hourlyWeatherForecasts = NSKeyedUnarchiver.unarchiveTopLevelObjectWithData(unarchivedObject) as! [HourlyWeatherForecast]
