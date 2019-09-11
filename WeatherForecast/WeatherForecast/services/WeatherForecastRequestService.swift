@@ -9,10 +9,17 @@
 import Foundation
 import PromiseKit
 
+enum WeatherForeCastServiceError: Error {
+    case wrongData
+    case apiError(errorCode: Int)
+    case urlError
+    case jsonError
+}
+
 class WeatherForecastRequestService
 {
     // Ask the api for the weather forecasts at a particular location
-    func getWeatherForecastsForLocation(location: String, callback:@escaping ([HourlyWeatherForecast]?) -> Void) {
+    func getWeatherForecastsForLocation(location: String, callback:@escaping ([HourlyWeatherForecast]?, WeatherForeCastServiceError?) -> Void) {
         
         // Compose the url to call
         var url = GlobalConstants.ForecastAPI.Url;
@@ -25,40 +32,48 @@ class WeatherForecastRequestService
             {
                 guard let jsonData = data, jsonData.isEmpty == false else
                 {
-                    DispatchQueue.main.async {callback(nil)}
+                    DispatchQueue.main.async {callback(nil, .wrongData)}
                     return;
                 }
                 guard error == nil else
                 {
-                    DispatchQueue.main.async {callback(nil)}
+                    DispatchQueue.main.async {callback(nil, .urlError)}
                     return;
                 }
                 do
                 {
                     if let json = try JSONSerialization.jsonObject(with: data!, options: []) as? [String:Any]
                     {
-                        if let request_state = json["request_state"] as? Int, request_state == 200
+                        if let request_state = json["request_state"] as? Int
                         {
-                            let hourlyForecast = self.parseWeatherForecastData(data: json)
-                            DispatchQueue.main.async {callback(hourlyForecast)}
-                            return;
+                            if request_state == 200
+                            {
+                                let hourlyForecast = self.parseWeatherForecastData(data: json)
+                                DispatchQueue.main.async {callback(hourlyForecast, nil)}
+                                return;
+                            }
+                            else
+                            {
+                                DispatchQueue.main.async {callback(nil, .apiError(errorCode: request_state))}
+                                return;
+                            }
                         }
                         else
                         {
-                            DispatchQueue.main.async {callback(nil)}
+                            DispatchQueue.main.async {callback(nil, .jsonError)}
                             return;
                         }
                     }
                     else
                     {
-                        DispatchQueue.main.async {callback(nil)}
+                        DispatchQueue.main.async {callback(nil, .jsonError)}
                         return;
                     }
                 }
             }
             catch
             {
-                print(error)
+                DispatchQueue.main.async {callback(nil, .urlError)}
             }
         })
     }
@@ -70,7 +85,7 @@ class WeatherForecastRequestService
         for (key, val) in data
         {
             let dateFormatter = DateFormatter()
-            dateFormatter.dateFormat = "yyyy-MM-dd HH:mm:ss"
+            dateFormatter.dateFormat = HourlyWeatherForecast.dateFormatString
             // Checking if we are parsing a date.
             // Api doesnt gather all forecasts in one dictionary...
             if let date = dateFormatter.date(from: key)

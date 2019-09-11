@@ -48,6 +48,7 @@ class DailyForecastDetailViewController: UIViewController, DailyForecastSelectio
     {
         loadViewIfNeeded()
         
+        // Parse data to be presented on this view
         let dayFormatter = DateFormatter()
         dayFormatter.dateFormat = "EEEE, d MMMM"
         let dateStr = dayFormatter.string(from: dailyForecast!.date!)
@@ -60,10 +61,12 @@ class DailyForecastDetailViewController: UIViewController, DailyForecastSelectio
         windDirSummaryDetail.configure(image: UIImage(named: "navigation")!, textContent: String(dailyForecast!.windDirection!) + " °")
         windForceSummaryDetail.configure(image: UIImage(named: "wind")!, textContent: String(dailyForecast!.windForce!.rounded()) + " km/h")
         
+        // Trigger reload from collection
         hourlyForecastCollectionView.reloadData()
     }
 }
 
+// DailyForecastSelectionDelegate
 extension DailyForecastDetailViewController
 {
     func dailyForecastSelected(_ dailyForecast: DailyForecastData)
@@ -72,6 +75,7 @@ extension DailyForecastDetailViewController
     }
 }
 
+// UICollectionViewDelegate
 extension DailyForecastDetailViewController
 {
     func numberOfSections(in collectionView: UICollectionView) -> Int

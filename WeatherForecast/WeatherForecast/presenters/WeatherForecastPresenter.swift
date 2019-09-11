@@ -8,6 +8,7 @@
 
 import Foundation
 import Network
+import os.log
 
 // View protocol
 protocol WeatherForecastView
@@ -52,8 +53,15 @@ class WeatherForecastPresenter
             // if so, ask the weather forecast service to give us a list of forecasts
             weatherForecastService.getWeatherForecastsForLocation(location: location)
             {
-                (hourlyForecasts: [HourlyWeatherForecast]?) in
-                // We got some forecasts
+                (hourlyForecasts: [HourlyWeatherForecast]?, error: WeatherForeCastServiceError?) in
+                // Error !
+                if error != nil
+                {
+                    os_log("Service returned an error", log: OSLog.default, type: .debug)
+                    // Try to show some data anyway
+                    self.createWeatherForecastBOAndFeedView()
+                    return
+                }
                 if let forecasts = hourlyForecasts, forecasts.isEmpty == false
                 {
                     // Cleanup the previously stored data
@@ -65,42 +73,32 @@ class WeatherForecastPresenter
                     }
                     // Save the model on disk
                     self.weatherForecastData.saveOnDisk()
-                    // Create the daily forecast BO to be used by the views
-                    self.dailyForeCasts = WeatherForecastBO.getDailyForecastData(data: self.weatherForecastData.hourlyWeatherForecasts)
-                    // Ask the view to show the actual data
-                    self.weatherForecastView?.setDailyForecasts(self.dailyForeCasts!)
+                    self.createWeatherForecastBOAndFeedView()
                 }
                 else
                 {
-                    // No data has been received, could be a timeout, could be no data at all
-                    // Fallbacking on the local save if available
-                    if self.weatherForecastData.hourlyWeatherForecasts.isEmpty == false
-                    {
-                        // Local save is available
-                        self.dailyForeCasts = WeatherForecastBO.getDailyForecastData(data: self.weatherForecastData.hourlyWeatherForecasts)
-                        self.weatherForecastView?.setDailyForecasts(self.dailyForeCasts!)
-                    }
-                    // No data in the save
-                    else
-                    {
-                        self.weatherForecastView?.setDailyForecasts(nil)
-                    }
+                    self.createWeatherForecastBOAndFeedView()
                 }
             }
         }
-            // NO internet, try to show saved data
+        // NO internet, try to show saved data
         else
         {
-            if self.weatherForecastData.hourlyWeatherForecasts.isEmpty == false
-            {
-                self.dailyForeCasts = WeatherForecastBO.getDailyForecastData(data: self.weatherForecastData.hourlyWeatherForecasts)
-                self.weatherForecastView?.setDailyForecasts(self.dailyForeCasts!)
-            }
-            else
-            {
-                // No data to show at all...
-                self.weatherForecastView?.setDailyForecasts(nil)
-            }
+            self.createWeatherForecastBOAndFeedView()
+        }
+    }
+    
+    func createWeatherForecastBOAndFeedView(){
+        
+        if self.weatherForecastData.hourlyWeatherForecasts.isEmpty == false
+        {
+            self.dailyForeCasts = WeatherForecastBO.getDailyForecastData(data: self.weatherForecastData.hourlyWeatherForecasts)
+            self.weatherForecastView?.setDailyForecasts(self.dailyForeCasts!)
+        }
+        else
+        {
+            // No data to show at all...
+            self.weatherForecastView?.setDailyForecasts(nil)
         }
     }
 }

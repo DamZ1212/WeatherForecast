@@ -28,6 +28,8 @@ class HourlyWeatherForecast : NSObject, NSCoding
         static let WindForce = "wind_force"
     }
     
+    static let dateFormatString = "yyyy-MM-dd HH:mm:ss"
+    
     var date : Date
     var temperature : Double? // temp in kelvin
     var rain : Int? // rain in mm
@@ -138,32 +140,37 @@ class WeatherForecastData
     }
     
     // Save current data on disk
-    func saveOnDisk()
+    func saveOnDisk() -> Bool?
     {
         do {
             let data = try NSKeyedArchiver.archivedData(withRootObject: self.hourlyWeatherForecasts as Any, requiringSecureCoding: false)
             try data.write(to: GlobalConstants.LocalSave.DataURL)
             UserDefaults.standard.set(data, forKey: GlobalConstants.LocalSave.UserDefaultKey)
             os_log("Forecasts successfully saved.", log: OSLog.default, type: .debug)
+            return true
         }
         catch
         {
             os_log("Failed to save forecasts...", log: OSLog.default, type: .error)
+            return false
         }
     }
     
     // Load data from disk
-    func loadFromDisk()
+    func loadFromDisk() -> Bool?
     {
         if let unarchivedObject = UserDefaults.standard.data(forKey: GlobalConstants.LocalSave.UserDefaultKey)
         {
             do {
                 try self.hourlyWeatherForecasts = NSKeyedUnarchiver.unarchiveTopLevelObjectWithData(unarchivedObject) as! [HourlyWeatherForecast]
+                return true
             }
             catch
             {
                 os_log("Forecast data not found...", log: OSLog.default, type: .error)
+                return false
             }
         }
+        return false
     }
 }

@@ -16,41 +16,49 @@ protocol DailyForecastSelectionDelegate : class {
 
 class WeatherForecastListTableViewController: UITableViewController, WeatherForecastView, CLLocationManagerDelegate
 {
-    let cellId = "DailyForecastCell"
-    let locationManager = CLLocationManager()
+    let cellId = "DailyForecastCell" // Cell reusable id
+    let locationManager = CLLocationManager() // Location Manager: gather user location
     
-    var presenter : WeatherForecastPresenter?
-    var dailyForecasts : [DailyForecastData]?
-    var alert : UIAlertController?
-    var lastKnownLocation : CLLocation?
-    weak var delegate: DailyForecastSelectionDelegate?
+    var presenter : WeatherForecastPresenter? // The linked presenter
+    var dailyForecasts : [DailyForecastData]? // stored daily forecasts
+    var alert : UIAlertController? // Current alert showed
+    var lastKnownLocation : CLLocation? // User last known location
+    weak var delegate: DailyForecastSelectionDelegate? // Delegate for cell selection
     
     override func viewDidLoad() {
         super.viewDidLoad()
         
+        // Presenter creation
         self.presenter = WeatherForecastPresenter()
+        // Attach self
         presenter?.attachView(self)
+        // Trigger current location determination
         determineMyCurrentLocation()
     }
     
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
+        // View appeared, no stored forecasts => still in loading state
         if dailyForecasts == nil
         {
             showLoader()
         }
     }
     
+    // Determine the current location of the user
     func determineMyCurrentLocation() {
+        
         locationManager.delegate = self
         locationManager.desiredAccuracy = kCLLocationAccuracyBest
         locationManager.requestAlwaysAuthorization()
         
+        // Launch location update
         if CLLocationManager.locationServicesEnabled() {
             locationManager.startUpdatingLocation()
         }
     }
     
+    // Shows a loading alert
     func showLoader()
     {
         self.alert = UIAlertController(title: nil, message: "Please wait...", preferredStyle: .alert)
@@ -65,18 +73,23 @@ class WeatherForecastListTableViewController: UITableViewController, WeatherFore
     }
 }
 
+// CLLocationManagerDelegate
 extension WeatherForecastListTableViewController
 {
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
         let userLocation:CLLocation = locations[0] as CLLocation
+        // No stored location
         if lastKnownLocation == nil
         {
+            // Store the first one
             lastKnownLocation = userLocation
+            // Stop asking for location
             manager.stopUpdatingLocation()
             print("user latitude = \(lastKnownLocation!.coordinate.latitude)")
             print("user longitude = \(lastKnownLocation!.coordinate.longitude)")
             
             let coordinates = String(lastKnownLocation!.coordinate.latitude) + "," + String(lastKnownLocation!.coordinate.longitude)
+            // Ask the presenter for the forecasts according to this location
             presenter?.getDailyWeatherForecastsForLocation(location: coordinates);
         }
     }
@@ -87,15 +100,21 @@ extension WeatherForecastListTableViewController
 {
     func setDailyForecasts(_ forecasts: [DailyForecastData]?)
     {
+        // Forecasts received from the presenter
         if let pForecasts = forecasts, !pForecasts.isEmpty
         {
+            // Store them
             self.dailyForecasts = forecasts
+            // Call delegate to update details
             delegate?.dailyForecastSelected(self.dailyForecasts![0])
+            // Reload current table data
             tableView.reloadData()
+            // Dismiss alert if applicable
             self.dismiss(animated: true)
         }
         else
         {
+            // No data received.
             // Dismiss current alert, and trigger error afterwards
             self.dismiss(animated: true) {
                 OperationQueue.main.addOperation {
