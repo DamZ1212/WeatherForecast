@@ -8,17 +8,21 @@
 
 import Foundation
 import UIKit
+import CoreLocation
 
 protocol DailyForecastSelectionDelegate : class {
     func dailyForecastSelected(_ dailyForecast: DailyForecastData)
 }
 
-class WeatherForecastListTableViewController: UITableViewController, WeatherForecastView
+class WeatherForecastListTableViewController: UITableViewController, WeatherForecastView, CLLocationManagerDelegate
 {
     let cellId = "DailyForecastCell"
+    let locationManager = CLLocationManager()
     
     var presenter : WeatherForecastPresenter?
     var dailyForecasts : [DailyForecastData]?
+    var alert : UIAlertController?
+    var lastKnownLocation : CLLocation?
     weak var delegate: DailyForecastSelectionDelegate?
     
     override func viewDidLoad() {
@@ -26,13 +30,55 @@ class WeatherForecastListTableViewController: UITableViewController, WeatherFore
         
         self.presenter = WeatherForecastPresenter()
         presenter?.attachView(self)
-        presenter?.getDailyWeatherForecastsForLocation(location: "48.85341,2.3488");
+        determineMyCurrentLocation()
+    }
+    
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        if dailyForecasts == nil
+        {
+            showLoader()
+        }
+    }
+    
+    func determineMyCurrentLocation() {
+        locationManager.delegate = self
+        locationManager.desiredAccuracy = kCLLocationAccuracyBest
+        locationManager.requestAlwaysAuthorization()
         
-        // Uncomment the following line to preserve selection between presentations
-        // self.clearsSelectionOnViewWillAppear = false
+        if CLLocationManager.locationServicesEnabled() {
+            locationManager.startUpdatingLocation()
+        }
+    }
+    
+    func showLoader()
+    {
+        self.alert = UIAlertController(title: nil, message: "Please wait...", preferredStyle: .alert)
+        
+        let loadingIndicator = UIActivityIndicatorView(frame: CGRect(x: 10, y: 5, width: 50, height: 50))
+        loadingIndicator.hidesWhenStopped = true
+        loadingIndicator.style = UIActivityIndicatorView.Style.gray
+        loadingIndicator.startAnimating();
+        
+        self.alert!.view.addSubview(loadingIndicator)
+        present(self.alert!, animated: true, completion: nil)
+    }
+}
 
-        // Uncomment the following line to display an Edit button in the navigation bar for this view controller.
-        // self.navigationItem.rightBarButtonItem = self.editButtonItem
+extension WeatherForecastListTableViewController
+{
+    func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
+        let userLocation:CLLocation = locations[0] as CLLocation
+        if lastKnownLocation == nil
+        {
+            lastKnownLocation = userLocation
+            manager.stopUpdatingLocation()
+            print("user latitude = \(lastKnownLocation!.coordinate.latitude)")
+            print("user longitude = \(lastKnownLocation!.coordinate.longitude)")
+            
+            let coordinates = String(lastKnownLocation!.coordinate.latitude) + "," + String(lastKnownLocation!.coordinate.longitude)
+            presenter?.getDailyWeatherForecastsForLocation(location: coordinates);
+        }
     }
 }
 
@@ -41,9 +87,23 @@ extension WeatherForecastListTableViewController
 {
     func setDailyForecasts(_ forecasts: [DailyForecastData]?)
     {
-        self.dailyForecasts = forecasts
-        delegate?.dailyForecastSelected(self.dailyForecasts![0])
-        tableView.reloadData()
+        if let pForecasts = forecasts, !pForecasts.isEmpty
+        {
+            self.dailyForecasts = forecasts
+            delegate?.dailyForecastSelected(self.dailyForecasts![0])
+            tableView.reloadData()
+            self.dismiss(animated: true)
+        }
+        else
+        {
+            // Dismiss current alert, and trigger error afterwards
+            self.dismiss(animated: true) {
+                OperationQueue.main.addOperation {
+                    self.alert = UIAlertController(title: "Error", message: "Could not gather weatherforecast data. Please try again later.", preferredStyle: .alert)
+                    self.present(self.alert!, animated: true, completion: nil)
+                }
+            }
+        }
     }
 }
 
@@ -83,50 +143,4 @@ extension WeatherForecastListTableViewController
             splitViewController?.showDetailViewController(detailViewController, sender: nil)
         }
     }
-    
-    
-    /*
-     // Override to support conditional editing of the table view.
-     override func tableView(_ tableView: UITableView, canEditRowAt indexPath: IndexPath) -> Bool {
-     // Return false if you do not want the specified item to be editable.
-     return true
-     }
-     */
-    
-    /*
-     // Override to support editing the table view.
-     override func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
-     if editingStyle == .delete {
-     // Delete the row from the data source
-     tableView.deleteRows(at: [indexPath], with: .fade)
-     } else if editingStyle == .insert {
-     // Create a new instance of the appropriate class, insert it into the array, and add a new row to the table view
-     }
-     }
-     */
-    
-    /*
-     // Override to support rearranging the table view.
-     override func tableView(_ tableView: UITableView, moveRowAt fromIndexPath: IndexPath, to: IndexPath) {
-     
-     }
-     */
-    
-    /*
-     // Override to support conditional rearranging of the table view.
-     override func tableView(_ tableView: UITableView, canMoveRowAt indexPath: IndexPath) -> Bool {
-     // Return false if you do not want the item to be re-orderable.
-     return true
-     }
-     */
-    
-    /*
-     // MARK: - Navigation
-     
-     // In a storyboard-based application, you will often want to do a little preparation before navigation
-     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-     // Get the new view controller using segue.destination.
-     // Pass the selected object to the new view controller.
-     }
-     */
 }

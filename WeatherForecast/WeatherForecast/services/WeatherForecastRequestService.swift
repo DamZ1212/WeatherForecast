@@ -37,7 +37,7 @@ class WeatherForecastRequestService
                 {
                     if let json = try JSONSerialization.jsonObject(with: data!, options: []) as? [String:Any]
                     {
-                        if let request_state = json["request_state"] as? String, request_state == "200"
+                        if let request_state = json["request_state"] as? Int, request_state == 200
                         {
                             let hourlyForecast = self.parseWeatherForecastData(data: json)
                             DispatchQueue.main.async {callback(hourlyForecast)}

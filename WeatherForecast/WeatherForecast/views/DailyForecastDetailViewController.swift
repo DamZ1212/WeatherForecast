@@ -33,16 +33,15 @@ class DailyForecastDetailViewController: UIViewController, DailyForecastSelectio
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        // Do any additional setup after loading the view.
-        hourlyForecastCollectionView.delegate = self
-        hourlyForecastCollectionView.dataSource = self
-        
+        // Collection View configuration
         let flowLayout = UICollectionViewFlowLayout()
         flowLayout.itemSize = CGSize(width: 100, height: 160)
         flowLayout.sectionInset = UIEdgeInsets(top: 0, left: 5, bottom: 0, right: 5)
         flowLayout.scrollDirection = .horizontal
         flowLayout.minimumInteritemSpacing = 0.0
         hourlyForecastCollectionView.collectionViewLayout = flowLayout
+        hourlyForecastCollectionView.delegate = self
+        hourlyForecastCollectionView.dataSource = self
     }
     
     func refreshUI()
@@ -60,6 +59,8 @@ class DailyForecastDetailViewController: UIViewController, DailyForecastSelectio
         humiditySummaryDetail.configure(image: UIImage(named: "humidity")!, textContent: String(dailyForecast!.humidity!.rounded()) + " %")
         windDirSummaryDetail.configure(image: UIImage(named: "navigation")!, textContent: String(dailyForecast!.windDirection!) + " °")
         windForceSummaryDetail.configure(image: UIImage(named: "wind")!, textContent: String(dailyForecast!.windForce!.rounded()) + " km/h")
+        
+        hourlyForecastCollectionView.reloadData()
     }
 }
 
@@ -81,7 +82,11 @@ extension DailyForecastDetailViewController
     func collectionView(_ collectionView: UICollectionView,
                                  numberOfItemsInSection section: Int) -> Int
     {
-        return self.dailyForecast!.hourlyForecasts!.count
+        if self.dailyForecast != nil
+        {
+            return self.dailyForecast!.hourlyForecasts!.count
+        }
+        return 0
     }
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell

@@ -153,15 +153,26 @@ class WeatherForecastBO
                 hourlyForecastData.pressure = hourlyForeCast.pressure
                 
                 // Additionning all properties we need to calculate average values
-                if let fRain = hourlyForeCast.rain, let fNebulosity = hourlyForeCast.nebulosity, let fTemperature = hourlyForeCast.temperature, let fPressure = hourlyForeCast.pressure, let fHumidity = hourlyForeCast.humidity, let fWindForce = hourlyForeCast.wind_force, let fWindDir = hourlyForeCast.wind_direction
-                {
+                if let fRain = hourlyForeCast.rain{
                     rain += fRain
+                }
+                if let fNebulosity = hourlyForeCast.nebulosity{
                     nebulosity += fNebulosity
+                }
+                if let fTemperature = hourlyForeCast.temperature{
                     temperature += fTemperature
-                    humidity += fHumidity
+                }
+                if let fPressure = hourlyForeCast.pressure{
                     pressure += fPressure
-                    windDir += fWindDir
+                }
+                if let fHumidity = hourlyForeCast.humidity{
+                    humidity += fHumidity
+                }
+                if let fWindForce = hourlyForeCast.wind_force{
                     windForce += fWindForce
+                }
+                if let fWindDir = hourlyForeCast.wind_direction{
+                    windDir += (fWindDir % 360) // wind direction could be > 360...
                 }
                 count += 1
                 dailyForecast.hourlyForecasts?.append(hourlyForecastData)
