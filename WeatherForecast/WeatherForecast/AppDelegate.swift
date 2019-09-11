@@ -18,6 +18,15 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
         // Override point for customization after application launch.
         Reachability.instance.startMonitoring()
+        
+        guard let splitViewController = window?.rootViewController as? WeatherForecastSplitViewController,
+            let leftNavController = splitViewController.viewControllers.first as? UINavigationController,
+            let masterViewController = leftNavController.topViewController as? WeatherForecastListTableViewController,
+            let detailViewController = splitViewController.viewControllers.last as? DailyForecastDetailViewController
+            else { fatalError() }
+        
+        masterViewController.delegate = detailViewController
+        
         return true
     }
 

@@ -7,14 +7,44 @@
 //
 
 import Foundation
+import UIKit
 
-enum ForecastDescription
+class ForecastDescription
 {
-    case sunny
-    case cloudy
-    case partialcloud
-    case dayrain
-    case rain
+    enum ForecastDescriptionItem
+    {
+        case sunny
+        case cloudy
+        case partialcloud
+        case dayrain
+        case rain
+    }
+    
+    let item : ForecastDescriptionItem
+    
+    init(item: ForecastDescriptionItem)
+    {
+        self.item = item
+    }
+    
+    func getImage() -> UIImage
+    {
+        var weatherIcon: UIImage {
+            switch self.item {
+            case .sunny:
+                return UIImage(named: "day_clear")!
+            case .cloudy:
+                return UIImage(named: "cloudy")!
+            case .partialcloud:
+                return UIImage(named: "day_partial_cloud.png")!
+            case .dayrain:
+                return UIImage(named: "day_rain.png")!
+            case .rain:
+                return UIImage(named: "rain.png")!
+            }
+        }
+        return weatherIcon
+    }
 }
 
 struct HourlyForecast
@@ -128,30 +158,29 @@ class WeatherForecastBO
             {
                 if vNebulosity == 0
                 {
-                    return .sunny
+                    return ForecastDescription(item:.sunny)
                 }
                 else if vNebulosity < 50
                 {
-                    return .partialcloud
+                    return ForecastDescription(item:.partialcloud)
                 }
                 else
                 {
-                    return .cloudy
+                    return ForecastDescription(item:.cloudy)
                 }
             }
             else
             {
                 if vNebulosity < 50
                 {
-                    return .dayrain
+                    return ForecastDescription(item:.dayrain)
                 }
                 else
                 {
-                    return .rain
+                    return ForecastDescription(item:.rain)
                 }
             }
         }
-        return .sunny
+        return ForecastDescription(item:.sunny)
     }
-
 }
