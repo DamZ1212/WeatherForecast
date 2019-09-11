@@ -55,6 +55,8 @@ struct HourlyForecast
     var rain : Int?
     var windForce : Double?
     var windDirection : Int?
+    var pressure : Int?
+    var humidity : Double?
 }
 
 // Business Object to show daily forecast
@@ -65,6 +67,10 @@ struct DailyForecastData
     var description : ForecastDescription?
     var temperature : Double?
     var rain : Int?
+    var pressure : Int?
+    var windForce : Double?
+    var windDirection : Int?
+    var humidity : Double?
     var hourlyForecasts : [HourlyForecast]?
 }
 
@@ -119,7 +125,13 @@ class WeatherForecastBO
             var nebulosity : Int = 0
             var rain : Int = 0
             var temperature : Double = 0
-            var nb : Int = 0
+            var humidity : Double = 0
+            var pressure : Int = 0
+            var windDir : Int = 0
+            var windForce : Double = 0
+            var count : Int = 0
+            
+            // hourlyForecasts not empty, at least one forecast in the collection
             for hourlyForeCast in hourlyForecasts
             {
                 var hourlyForecastData = HourlyForecast()
@@ -129,22 +141,31 @@ class WeatherForecastBO
                 hourlyForecastData.temperature = hourlyForeCast.temperature
                 hourlyForecastData.windForce = hourlyForeCast.wind_force
                 hourlyForecastData.windDirection = hourlyForeCast.wind_direction
+                hourlyForecastData.pressure = hourlyForeCast.pressure
                 
-                if let fRain = hourlyForeCast.rain, let fNebulosity = hourlyForeCast.nebulosity, let fTemperature = hourlyForeCast.temperature
+                if let fRain = hourlyForeCast.rain, let fNebulosity = hourlyForeCast.nebulosity, let fTemperature = hourlyForeCast.temperature, let fPressure = hourlyForeCast.pressure, let fHumidity = hourlyForeCast.humidity, let fWindForce = hourlyForeCast.wind_force, let fWindDir = hourlyForeCast.wind_direction
                 {
                     rain += fRain
                     nebulosity += fNebulosity
                     temperature += fTemperature
-                    nb += 1
+                    humidity += fHumidity
+                    pressure += fPressure
+                    windDir += fWindDir
+                    windForce += fWindForce
                 }
+                count += 1
                 dailyForecast.hourlyForecasts?.append(hourlyForecastData)
             }
-            let averageRain = rain / nb
-            let averageNebulosity = nebulosity / nb
-            let averageTemperaure = temperature / Double(nb)
+            let averageRain = rain / count
+            let averageNebulosity = nebulosity / count
+            let averageTemperaure = temperature / Double(count)
             dailyForecast.description = WeatherForecastBO.getForecastDescription(rain: averageRain, nebulosity: averageNebulosity)
             dailyForecast.rain = averageRain
             dailyForecast.temperature = averageTemperaure
+            dailyForecast.pressure = pressure / count
+            dailyForecast.humidity = humidity / Double(count)
+            dailyForecast.windForce = windForce / Double(count)
+            dailyForecast.windDirection = windDir / count
             return dailyForecast
         }
         return nil

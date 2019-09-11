@@ -16,7 +16,7 @@ class HourlyWeatherForecast : NSObject, NSCoding
         static let Date = "date"
         static let Temperature = "temperature"
         static let Rain = "rain"
-        static let Pression = "pression"
+        static let Pressure = "pressure"
         static let Humidity = "humidity"
         static let Nebulosity = "nebulosity"
         static let WindDirection = "wind_direction"
@@ -26,7 +26,7 @@ class HourlyWeatherForecast : NSObject, NSCoding
     var date : Date
     var temperature : Double? // temp in kelvin
     var rain : Int? // rain in mm
-    var pression : Int? // pression
+    var pressure : Int? // pression
     var humidity : Double? // humidity
     var nebulosity : Int? // %
     var wind_direction : Int? // degrees
@@ -37,12 +37,12 @@ class HourlyWeatherForecast : NSObject, NSCoding
         self.date = date
     }
     
-    init(date: Date, temperature: Double, rain : Int, pression: Int, humidity: Double, nebulosity: Int, wind_direction : Int, wind_force: Double)
+    init(date: Date, temperature: Double, rain : Int, pressure: Int, humidity: Double, nebulosity: Int, wind_direction : Int, wind_force: Double)
     {
         self.date = date
         self.temperature = temperature
         self.rain = rain
-        self.pression = pression
+        self.pressure = pressure
         self.humidity = humidity
         self.nebulosity = nebulosity
         self.wind_direction = wind_direction
@@ -61,7 +61,7 @@ class HourlyWeatherForecast : NSObject, NSCoding
         }
         if let pression = data["pression"] as? [String:Any]
         {
-            self.pression = pression["niveau_de_la_mer"] as? Int
+            self.pressure = pression["niveau_de_la_mer"] as? Int
         }
         if let humidity = data["humidite"] as? [String:Any]
         {
@@ -86,7 +86,7 @@ class HourlyWeatherForecast : NSObject, NSCoding
         aCoder.encode(date, forKey: PropertyKey.Date)
         aCoder.encode(temperature, forKey: PropertyKey.Temperature)
         aCoder.encode(rain, forKey: PropertyKey.Rain)
-        aCoder.encode(pression, forKey: PropertyKey.Pression)
+        aCoder.encode(pressure, forKey: PropertyKey.Pressure)
         aCoder.encode(humidity, forKey: PropertyKey.Humidity)
         aCoder.encode(nebulosity, forKey: PropertyKey.Nebulosity)
         aCoder.encode(wind_direction, forKey: PropertyKey.WindDirection)
@@ -97,16 +97,16 @@ class HourlyWeatherForecast : NSObject, NSCoding
         let decodedDate = aDecoder.decodeObject(forKey: PropertyKey.Date) as! Date
         let decodedTemp = aDecoder.decodeObject(forKey: PropertyKey.Temperature) as? Double ?? 0
         let decodedRain = aDecoder.decodeObject(forKey: PropertyKey.Rain) as? Int ?? 0
-        let decodedPression = aDecoder.decodeObject(forKey: PropertyKey.Pression) as? Int ?? 0
+        let decodedPressure = aDecoder.decodeObject(forKey: PropertyKey.Pressure) as? Int ?? 0
         let decodedHumidity = aDecoder.decodeObject(forKey: PropertyKey.Humidity) as? Double ?? 0
         let decodedNebulosity = aDecoder.decodeObject(forKey: PropertyKey.Nebulosity) as? Int ?? 0
         let decodedWindDir = aDecoder.decodeObject(forKey: PropertyKey.WindDirection) as? Int ?? 0
         let decodedWindForce = aDecoder.decodeObject(forKey: PropertyKey.WindForce) as? Double ?? 0
         
-        self.init(date: decodedDate, temperature: decodedTemp, rain: decodedRain, pression: decodedPression, humidity: decodedHumidity, nebulosity: decodedNebulosity, wind_direction: decodedWindDir, wind_force: decodedWindForce)
+        self.init(date: decodedDate, temperature: decodedTemp, rain: decodedRain, pressure: decodedPressure, humidity: decodedHumidity, nebulosity: decodedNebulosity, wind_direction: decodedWindDir, wind_force: decodedWindForce)
     }
     
-    override var description: String { return String("Date: \(date), Temperature: \(temperature), Rain: \(rain), Pression: \(pression), Humidity: \(humidity), Nebulosity: \(nebulosity), Wind direction: \(wind_direction), Wind Force: \(wind_force)") }
+    override var description: String { return String("Date: \(date), Temperature: \(temperature), Rain: \(rain), Pressure: \(pressure), Humidity: \(humidity), Nebulosity: \(nebulosity), Wind direction: \(wind_direction), Wind Force: \(wind_force)") }
 }
 
 class WeatherForecastData

@@ -42,6 +42,7 @@ extension WeatherForecastListTableViewController
     func setDailyForecasts(_ forecasts: [DailyForecastData]?)
     {
         self.dailyForecasts = forecasts
+        delegate?.dailyForecastSelected(self.dailyForecasts![0])
         tableView.reloadData()
     }
 }
