@@ -15,7 +15,7 @@ protocol DailyForecastSelectionDelegate : class {
 
 class WeatherForecastListTableViewController: UITableViewController, WeatherForecastView
 {
-    let cellId = "dailyForecastCell"
+    let cellId = "DailyForecastCell"
     
     var presenter : WeatherForecastPresenter?
     var dailyForecasts : [DailyForecastData]?
@@ -27,8 +27,6 @@ class WeatherForecastListTableViewController: UITableViewController, WeatherFore
         self.presenter = WeatherForecastPresenter()
         presenter?.attachView(self)
         presenter?.getDailyWeatherForecastsForLocation(location: "48.85341,2.3488");
-        
-        tableView.register(UITableViewCell.self, forCellReuseIdentifier: cellId)
         
         // Uncomment the following line to preserve selection between presentations
         // self.clearsSelectionOnViewWillAppear = false
@@ -67,10 +65,13 @@ extension WeatherForecastListTableViewController
     
     
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: cellId, for: indexPath)
-        let forecast = dailyForecasts![indexPath.row]
-        cell.textLabel?.text = forecast.date!.description + " : " + forecast.temperature!.description
-        return cell
+        if let cell = tableView.dequeueReusableCell(withIdentifier: cellId, for: indexPath) as? DailyForecastTableViewCell
+        {
+            let forecast = dailyForecasts![indexPath.row]
+            cell.dailyForecast = forecast
+            return cell
+        }
+        return UITableViewCell()
     }
     
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {

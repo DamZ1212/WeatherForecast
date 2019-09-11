@@ -26,6 +26,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             else { fatalError() }
         
         masterViewController.delegate = detailViewController
+        detailViewController.navigationItem.leftItemsSupplementBackButton = true
+        detailViewController.navigationItem.leftBarButtonItem = splitViewController.displayModeButtonItem
         
         return true
     }

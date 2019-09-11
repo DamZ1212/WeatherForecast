@@ -12,6 +12,8 @@ import UIKit
 class DailyForecastDetailViewController: UIViewController, DailyForecastSelectionDelegate {
     
     @IBOutlet weak var dateLabel: UILabel!
+    @IBOutlet weak var icon: UIImageView!
+    @IBOutlet weak var temperatureLabel: UILabel!
     
     var dailyForecast: DailyForecastData? {
         didSet {
@@ -28,7 +30,13 @@ class DailyForecastDetailViewController: UIViewController, DailyForecastSelectio
     func refreshUI()
     {
         loadViewIfNeeded()
-        dateLabel.text = dailyForecast!.date?.description
+        
+        let dayFormatter = DateFormatter()
+        dayFormatter.dateFormat = "EEEE, d MMMM"
+        let dateStr = dayFormatter.string(from: dailyForecast!.date!)
+        dateLabel.text = dateStr
+        icon.image = dailyForecast!.description?.getImage()
+        temperatureLabel.text = String(Utils.convertKelvinToCelsius(dailyForecast!.temperature!).rounded(toPlaces: 1)) + "°"
     }
 
     /*

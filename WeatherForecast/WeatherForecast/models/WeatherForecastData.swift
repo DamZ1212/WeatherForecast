@@ -84,13 +84,13 @@ class HourlyWeatherForecast : NSObject, NSCoding
     func encode(with aCoder: NSCoder) {
         print(self)
         aCoder.encode(date, forKey: PropertyKey.Date)
-        aCoder.encode(temperature ?? 0, forKey: PropertyKey.Temperature)
-        aCoder.encode(rain ?? 0, forKey: PropertyKey.Rain)
-        aCoder.encode(pression ?? 0, forKey: PropertyKey.Pression)
-        aCoder.encode(humidity ?? 0, forKey: PropertyKey.Humidity)
-        aCoder.encode(nebulosity ?? 0, forKey: PropertyKey.Nebulosity)
-        aCoder.encode(wind_direction ?? 0, forKey: PropertyKey.WindDirection)
-        aCoder.encode(wind_force ?? 0, forKey: PropertyKey.WindForce)
+        aCoder.encode(temperature, forKey: PropertyKey.Temperature)
+        aCoder.encode(rain, forKey: PropertyKey.Rain)
+        aCoder.encode(pression, forKey: PropertyKey.Pression)
+        aCoder.encode(humidity, forKey: PropertyKey.Humidity)
+        aCoder.encode(nebulosity, forKey: PropertyKey.Nebulosity)
+        aCoder.encode(wind_direction, forKey: PropertyKey.WindDirection)
+        aCoder.encode(wind_force, forKey: PropertyKey.WindForce)
     }
     
     required convenience init?(coder aDecoder: NSCoder) {
