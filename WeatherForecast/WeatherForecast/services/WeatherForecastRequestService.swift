@@ -7,9 +7,11 @@
 //
 
 import Foundation
+import PromiseKit
 
 class WeatherForecastRequestService
 {
+    
     func getWeatherForecastsForLocation(location: String, callback:@escaping ([HourlyWeatherForecast]?) -> Void) {
         
         var url = GlobalConstants.Forecast.APIUrl;
@@ -22,6 +24,7 @@ class WeatherForecastRequestService
         query(url: url, completion: {data, response, error in
             do
             {
+                // Check for correct return code ! //200
                 let hourlyForecast = try self.parseWeatherForecastData(data: data!)
                 DispatchQueue.main.async {callback(hourlyForecast)}
             }
