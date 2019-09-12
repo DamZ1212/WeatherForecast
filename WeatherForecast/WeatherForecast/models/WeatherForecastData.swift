@@ -129,11 +129,13 @@ class WeatherForecastData
         self.hourlyWeatherForecasts = [HourlyWeatherForecast]()
     }
     
+    // Adds an hourly forecast to the stored data
     func addHourlyForecast(forecast: HourlyWeatherForecast)
     {
         hourlyWeatherForecasts.append(forecast)
     }
     
+    // Cleanup cached data
     func cleanUp()
     {
         hourlyWeatherForecasts.removeAll()

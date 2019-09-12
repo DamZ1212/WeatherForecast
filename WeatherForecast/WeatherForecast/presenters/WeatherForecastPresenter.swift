@@ -20,15 +20,15 @@ protocol WeatherForecastView
 /* Main presenter
  Create the service that communicate with data suppliers
  Create the model to store the data
- Communicate with the link view to push BO to show
+ Ask the view to show computed business objects
  */
 class WeatherForecastPresenter
 {
-    let weatherForecastService : WeatherForecastRequestService
-    let weatherForecastData : WeatherForecastData
+    let weatherForecastService : WeatherForecastRequestService // service
+    let weatherForecastData : WeatherForecastData // model
     
-    var weatherForecastView : WeatherForecastView?
-    var dailyForeCasts : [DailyForecastData]?
+    var weatherForecastView : WeatherForecastView? // view
+    var dailyForeCasts : [DailyForecastData]? // stored returned forecasts from service
     
     init() {
         self.weatherForecastService = WeatherForecastRequestService()
@@ -65,7 +65,7 @@ class WeatherForecastPresenter
                     }
                     // Save the model on disk
                     self.weatherForecastData.saveOnDisk()
-                    self.createWeatherForecastBOAndFeedView()
+                    self.createWeatherForecastsBOAndFeedView()
                 }
             }
             .catch
@@ -74,16 +74,17 @@ class WeatherForecastPresenter
                 // Try to show some data anyway
                 os_log("Weather service triggered an error, attempting to parse local data", log: OSLog.default, type: .error)
                 
-                self.createWeatherForecastBOAndFeedView()
+                self.createWeatherForecastsBOAndFeedView()
             }
         }
         else
         {
-            self.createWeatherForecastBOAndFeedView()
+            self.createWeatherForecastsBOAndFeedView()
         }
     }
     
-    func createWeatherForecastBOAndFeedView(){
+    // Create daily forecast business objects, and feed the view with them
+    func createWeatherForecastsBOAndFeedView(){
         
         if self.weatherForecastData.hourlyWeatherForecasts.isEmpty == false
         {

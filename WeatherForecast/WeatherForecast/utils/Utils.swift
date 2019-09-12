@@ -10,12 +10,14 @@ import Foundation
 
 class Utils
 {
+    // Kalvin to celsius degrees
     static func convertKelvinToCelsius(_ kelvin: Double) -> Double
     {
         return kelvin - 273.15
     }
 }
 
+// Rounded extension to double to show "places" digits after coma
 extension Double {
     /// Rounds the double to decimal places value
     func rounded(toPlaces places:Int) -> Double {

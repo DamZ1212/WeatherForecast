@@ -23,30 +23,43 @@ class WeatherForecastRequestService
     func getWeatherForecastsForLocation(location: String) -> Promise<[HourlyWeatherForecast]?>{
         
         return Promise<[HourlyWeatherForecast]?> { seal in
+            
+            // Compose the url
             var urlStr = GlobalConstants.ForecastAPI.Url;
             urlStr += "_ll=" + location
             urlStr += "&_auth=" + GlobalConstants.ForecastAPI.Auth
             urlStr += "&_c=" + GlobalConstants.ForecastAPI.C
             let url = URL(string: urlStr)!
             
+            // Trigger url request
             URLSession.shared.dataTask(with: url) { data, _, error in
+                
+                // Check data integrity, then parse json
                 guard let data = data,
                     let result = try? JSONSerialization.jsonObject(with: data, options: []) as? [String:Any] else {
                         seal.reject(error ?? WeatherForeCastServiceError.jsonError)
                         return
                 }
+                
+                // Check returned code to check request status
                 guard let returnCode = result["request_state"] as? Int else {
                     seal.reject(WeatherForeCastServiceError.wrongData)
                     return
                 }
+                
+                // Status OK
                 guard returnCode == 200 else {
                     seal.reject(WeatherForeCastServiceError.apiError(errorCode: returnCode))
                     return
                 }
+                
+                // Parse forecasts from json
                 guard let hourlyForecasts = self.parseWeatherForecastData(data: result), hourlyForecasts.isEmpty == false else {
                     seal.reject(WeatherForeCastServiceError.dataError)
                     return
                 }
+                
+                // Everything ok, fulfill the promise
                 seal.fulfill(hourlyForecasts)
             }.resume()
         }
@@ -61,7 +74,7 @@ class WeatherForecastRequestService
             let dateFormatter = DateFormatter()
             dateFormatter.dateFormat = HourlyWeatherForecast.dateFormatString
             // Checking if we are parsing a date.
-            // Api doesnt gather all forecasts in one dictionary...
+            // Api doesnt gather all forecasts in one dictionary, so we need to check for every key...
             if let date = dateFormatter.date(from: key)
             {
                 if (hourlyWeatherForecasts == nil)

@@ -75,6 +75,8 @@ class WeatherForecastListTableViewController: UITableViewController, WeatherFore
         present(self.alert!, animated: true, completion: nil)
     }
     
+    // Shows an alert to the user
+    // Hide the previous one if applicable
     func showAlert(title: String, message: String)
     {
         self.dismiss(animated: true) {
