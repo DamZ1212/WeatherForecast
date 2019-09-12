@@ -136,7 +136,6 @@
 		6D593C2C2328267300146667 = {
 			isa = PBXGroup;
 			children = (
-				6D1379ED23299C7800BE786B /* Resources */,
 				6D593C372328267300146667 /* WeatherForecast */,
 				6D593C4F2328267400146667 /* WeatherForecastTests */,
 				6D593C362328267300146667 /* Products */,
@@ -177,6 +176,7 @@
 		6D593C4F2328267400146667 /* WeatherForecastTests */ = {
 			isa = PBXGroup;
 			children = (
+				6D1379ED23299C7800BE786B /* Resources */,
 				6D593C502328267400146667 /* WeatherForecastTests.swift */,
 				6D593C522328267400146667 /* Info.plist */,
 			);

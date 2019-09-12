@@ -1,0 +1,34 @@
+{
+    "temperature": {
+      "2m": 283.1,
+      "sol": 282.6,
+      "500hPa": -0.1,
+      "850hPa": -0.1
+    },
+    "pression": {
+      "niveau_de_la_mer": 102690
+    },
+    "pluie": 0,
+    "pluie_convective": 0,
+    "humidite": {
+      "2m": 67.3
+    },
+    "vent_moyen": {
+      "10m": 17.3
+    },
+    "vent_rafales": {
+      "10m": 39.4
+    },
+    "vent_direction": {
+      "10m": 417
+    },
+    "iso_zero": 3950,
+    "risque_neige": "non",
+    "cape": 0,
+    "nebulosite": {
+      "haute": 0,
+      "moyenne": 0,
+      "basse": 0,
+      "totale": 0
+    }
+}

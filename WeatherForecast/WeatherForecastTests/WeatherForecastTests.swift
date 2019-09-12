@@ -207,7 +207,7 @@ class DataStorage: XCTestCase {
     override func tearDown() {
         // Put teardown code here. This method is called after the invocation of each test method in the class.
         self.weatherForecastData.cleanUp()
-        _ = self.weatherForecastData.saveOnDisk()
+        self.weatherForecastData.saveOnDisk()
     }
     
     func testDataStorageFlow() {
@@ -222,13 +222,13 @@ class DataStorage: XCTestCase {
             XCTAssert(self.weatherForecastData.hourlyWeatherForecasts.count == forecastDatas!.count)
             
             let saveRet = self.weatherForecastData.saveOnDisk()
-            XCTAssert(saveRet)
+            XCTAssert(saveRet!)
             
             self.weatherForecastData.cleanUp()
             XCTAssert(self.weatherForecastData.hourlyWeatherForecasts.count == 0)
             
             let loadRet = self.weatherForecastData.loadFromDisk()
-            XCTAssert(loadRet)
+            XCTAssert(loadRet!)
             XCTAssert(self.weatherForecastData.hourlyWeatherForecasts.count == forecastDatas!.count)
         }
     }
