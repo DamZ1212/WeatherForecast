@@ -43,18 +43,12 @@ struct HourlyForecast
     var date : Date?
     var description : ForecastDescription?
     var temperature : Double?
-    var rain : Int?
-    var windForce : Double?
-    var windDirection : Int?
-    var pressure : Int?
-    var humidity : Double?
 }
 
 /* Business Object representing a daily forecast with average values and an array of hourly forecasts */
 struct DailyForecastData
 {
     var date : Date?
-    var location : String?
     var description : ForecastDescription?
     var temperature : Double?
     var rain : Int?
@@ -82,7 +76,7 @@ class WeatherForecastBO
             // previous forecast
             if currentForeCast != nil
             {
-                // is current forecast and previous forecat of the same day ?
+                // is current forecast and previous forecast of the same day ?
                 if Calendar.current.isDate(currentForeCast!.date, inSameDayAs:forecast.date)
                 {
                     // If so, append to the current array we're filling
@@ -94,7 +88,7 @@ class WeatherForecastBO
                 else
                 {
                     // Not the same day, we're done pushing to the current array
-                    // Try to create a daily forecast out of the hourly forecasts we gathered
+                    // Try to create a daily forecast out of the hourly forecasts we've gathered
                     if let dailyForecast = WeatherForecastBO.getDailyForecastDataFromHourlyForecasts(forecasts: gatheredForecasts)
                     {
                         // If daily forecast array doesnt exist, create it
@@ -145,12 +139,8 @@ class WeatherForecastBO
                 // Creates an hourlyForecast BO
                 var hourlyForecastData = HourlyForecast()
                 hourlyForecastData.date = hourlyForeCast.date
-                hourlyForecastData.rain = hourlyForeCast.rain
                 hourlyForecastData.description = WeatherForecastBO.getForecastDescription(rain: hourlyForeCast.rain, nebulosity: hourlyForeCast.nebulosity)
                 hourlyForecastData.temperature = hourlyForeCast.temperature
-                hourlyForecastData.windForce = hourlyForeCast.wind_force
-                hourlyForecastData.windDirection = hourlyForeCast.wind_direction
-                hourlyForecastData.pressure = hourlyForeCast.pressure
                 
                 // Additionning all properties we need to calculate average values
                 if let fRain = hourlyForeCast.rain{

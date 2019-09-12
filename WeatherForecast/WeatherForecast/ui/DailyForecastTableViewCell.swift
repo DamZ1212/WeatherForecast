@@ -21,6 +21,7 @@ class DailyForecastTableViewCell: UITableViewCell {
         }
     }
     
+    // Refresh the current view
     func refreshUI()
     {
         let dayFormatter = DateFormatter()

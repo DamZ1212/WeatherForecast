@@ -9,10 +9,12 @@
 import Foundation
 import Network
 
+/* Check if internet connexion is available */
 class Reachability{
     
     static let instance = Reachability()
     
+    // Current path stored
     var currentPath : NWPath?
     
     private init()

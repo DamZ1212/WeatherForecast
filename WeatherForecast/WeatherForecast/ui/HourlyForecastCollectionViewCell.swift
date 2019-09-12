@@ -21,11 +21,6 @@ class HourlyForecastCollectionViewCell: UICollectionViewCell {
         }
     }
     
-    override func awakeFromNib() {
-        super.awakeFromNib()
-        // Initialization code
-    }
-    
     func refreshUI()
     {
         let hourFormatter = DateFormatter()
