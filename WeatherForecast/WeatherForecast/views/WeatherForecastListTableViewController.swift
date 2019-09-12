@@ -22,7 +22,6 @@ class WeatherForecastListTableViewController: UITableViewController, WeatherFore
     var presenter : WeatherForecastPresenter? // The linked presenter
     var dailyForecasts : [DailyForecastData]? // stored daily forecasts
     var alert : UIAlertController? // Current alert showed
-    var lastKnownLocation : CLLocation? // User last known location
     weak var delegate: DailyForecastSelectionDelegate? // Delegate for cell selection
     
     override func viewDidLoad() {
@@ -50,11 +49,15 @@ class WeatherForecastListTableViewController: UITableViewController, WeatherFore
         
         locationManager.delegate = self
         locationManager.desiredAccuracy = kCLLocationAccuracyBest
-        locationManager.requestAlwaysAuthorization()
+        locationManager.requestWhenInUseAuthorization()
         
-        // Launch location update
+        // Launch location request
         if CLLocationManager.locationServicesEnabled() {
-            locationManager.startUpdatingLocation()
+            locationManager.requestLocation()
+        }
+        else
+        {
+            showAlert(title: "Error", message: "Failed to retrieve your location. Please authorize the app to access your location data.")
         }
     }
     
@@ -71,26 +74,42 @@ class WeatherForecastListTableViewController: UITableViewController, WeatherFore
         self.alert!.view.addSubview(loadingIndicator)
         present(self.alert!, animated: true, completion: nil)
     }
+    
+    func showAlert(title: String, message: String)
+    {
+        self.dismiss(animated: true) {
+            OperationQueue.main.addOperation {
+                self.alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
+                self.present(self.alert!, animated: true, completion: nil)
+            }
+        }
+    }
 }
 
 // CLLocationManagerDelegate
 extension WeatherForecastListTableViewController
 {
+    // Handling the location we asked for
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
         let userLocation:CLLocation = locations[0] as CLLocation
-        // No stored location
-        if lastKnownLocation == nil
+        print("user latitude = \(userLocation.coordinate.latitude)")
+        print("user longitude = \(userLocation.coordinate.longitude)")
+        
+        let coordinates = String(userLocation.coordinate.latitude) + "," + String(userLocation.coordinate.longitude)
+        // Ask the presenter for the forecasts according to this location
+        presenter?.getDailyWeatherForecastsForLocation(location: coordinates);
+    }
+    
+    // Failed to retrieve the location for some reason
+    func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
+        showAlert(title: "Error", message: "Failed to retrieve your location. Please authorize the app to access your location data.")
+    }
+    
+    // User just authorized the location manager to be running, request it
+    func locationManager(_ manager: CLLocationManager, didChangeAuthorization status: CLAuthorizationStatus) {
+        if status == .authorizedAlways || status == .authorizedWhenInUse
         {
-            // Store the first one
-            lastKnownLocation = userLocation
-            // Stop asking for location
-            manager.stopUpdatingLocation()
-            print("user latitude = \(lastKnownLocation!.coordinate.latitude)")
-            print("user longitude = \(lastKnownLocation!.coordinate.longitude)")
-            
-            let coordinates = String(lastKnownLocation!.coordinate.latitude) + "," + String(lastKnownLocation!.coordinate.longitude)
-            // Ask the presenter for the forecasts according to this location
-            presenter?.getDailyWeatherForecastsForLocation(location: coordinates);
+            manager.requestLocation()
         }
     }
 }
@@ -114,14 +133,7 @@ extension WeatherForecastListTableViewController
         }
         else
         {
-            // No data received.
-            // Dismiss current alert, and trigger error afterwards
-            self.dismiss(animated: true) {
-                OperationQueue.main.addOperation {
-                    self.alert = UIAlertController(title: "Error", message: "Could not gather weatherforecast data. Please try again later.", preferredStyle: .alert)
-                    self.present(self.alert!, animated: true, completion: nil)
-                }
-            }
+            showAlert(title: "Error", message: "Could not gather weatherforecast data. Please try again later.")
         }
     }
 }

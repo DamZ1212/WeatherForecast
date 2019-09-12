@@ -14,6 +14,7 @@ enum WeatherForeCastServiceError: Error {
     case apiError(errorCode: Int)
     case urlError
     case jsonError
+    case dataError
 }
 
 class WeatherForecastRequestService
@@ -38,13 +39,15 @@ class WeatherForecastRequestService
                     seal.reject(WeatherForeCastServiceError.wrongData)
                     return
                 }
-                guard returnCode == 200 else
-                {
+                guard returnCode == 200 else {
                     seal.reject(WeatherForeCastServiceError.apiError(errorCode: returnCode))
                     return
                 }
-                let hourlyForecasts = self.parseWeatherForecastData(data: result)
-                seal.fulfill(hourlyForecasts!)
+                guard let hourlyForecasts = self.parseWeatherForecastData(data: result), hourlyForecasts.isEmpty == false else {
+                    seal.reject(WeatherForeCastServiceError.dataError)
+                    return
+                }
+                seal.fulfill(hourlyForecasts)
             }.resume()
         }
     }
