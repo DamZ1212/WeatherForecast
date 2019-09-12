@@ -137,10 +137,11 @@ class WeatherForecastData
     func cleanUp()
     {
         hourlyWeatherForecasts.removeAll()
+        hourlyWeatherForecasts = [HourlyWeatherForecast]()
     }
     
     // Save current data on disk
-    func saveOnDisk() -> Bool?
+    @discardableResult func saveOnDisk() -> Bool?
     {
         do {
             let data = try NSKeyedArchiver.archivedData(withRootObject: self.hourlyWeatherForecasts as Any, requiringSecureCoding: false)
@@ -157,7 +158,7 @@ class WeatherForecastData
     }
     
     // Load data from disk
-    func loadFromDisk() -> Bool?
+    @discardableResult func loadFromDisk() -> Bool?
     {
         if let unarchivedObject = UserDefaults.standard.data(forKey: GlobalConstants.LocalSave.UserDefaultKey)
         {

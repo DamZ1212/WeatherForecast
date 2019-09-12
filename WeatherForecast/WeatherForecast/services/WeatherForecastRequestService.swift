@@ -19,63 +19,34 @@ enum WeatherForeCastServiceError: Error {
 class WeatherForecastRequestService
 {
     // Ask the api for the weather forecasts at a particular location
-    func getWeatherForecastsForLocation(location: String, callback:@escaping ([HourlyWeatherForecast]?, WeatherForeCastServiceError?) -> Void) {
+    func getWeatherForecastsForLocation(location: String) -> Promise<[HourlyWeatherForecast]?>{
         
-        // Compose the url to call
-        var url = GlobalConstants.ForecastAPI.Url;
-        url += "_ll=" + location
-        url += "&_auth=" + GlobalConstants.ForecastAPI.Auth
-        url += "&_c=" + GlobalConstants.ForecastAPI.C
-        
-        query(url: url, completion: {data, response, error in
-            do
-            {
-                guard let jsonData = data, jsonData.isEmpty == false else
-                {
-                    DispatchQueue.main.async {callback(nil, .wrongData)}
-                    return;
+        return Promise<[HourlyWeatherForecast]?> { seal in
+            var urlStr = GlobalConstants.ForecastAPI.Url;
+            urlStr += "_ll=" + location
+            urlStr += "&_auth=" + GlobalConstants.ForecastAPI.Auth
+            urlStr += "&_c=" + GlobalConstants.ForecastAPI.C
+            let url = URL(string: urlStr)!
+            
+            URLSession.shared.dataTask(with: url) { data, _, error in
+                guard let data = data,
+                    let result = try? JSONSerialization.jsonObject(with: data, options: []) as? [String:Any] else {
+                        seal.reject(error ?? WeatherForeCastServiceError.jsonError)
+                        return
                 }
-                guard error == nil else
-                {
-                    DispatchQueue.main.async {callback(nil, .urlError)}
-                    return;
+                guard let returnCode = result["request_state"] as? Int else {
+                    seal.reject(WeatherForeCastServiceError.wrongData)
+                    return
                 }
-                do
+                guard returnCode == 200 else
                 {
-                    if let json = try JSONSerialization.jsonObject(with: data!, options: []) as? [String:Any]
-                    {
-                        if let request_state = json["request_state"] as? Int
-                        {
-                            if request_state == 200
-                            {
-                                let hourlyForecast = self.parseWeatherForecastData(data: json)
-                                DispatchQueue.main.async {callback(hourlyForecast, nil)}
-                                return;
-                            }
-                            else
-                            {
-                                DispatchQueue.main.async {callback(nil, .apiError(errorCode: request_state))}
-                                return;
-                            }
-                        }
-                        else
-                        {
-                            DispatchQueue.main.async {callback(nil, .jsonError)}
-                            return;
-                        }
-                    }
-                    else
-                    {
-                        DispatchQueue.main.async {callback(nil, .jsonError)}
-                        return;
-                    }
+                    seal.reject(WeatherForeCastServiceError.apiError(errorCode: returnCode))
+                    return
                 }
-            }
-            catch
-            {
-                DispatchQueue.main.async {callback(nil, .urlError)}
-            }
-        })
+                let hourlyForecasts = self.parseWeatherForecastData(data: result)
+                seal.fulfill(hourlyForecasts!)
+            }.resume()
+        }
     }
     
     // Parse data from json to extract hourly weather forecasts
@@ -101,16 +72,5 @@ class WeatherForecastRequestService
             }
         }
         return hourlyWeatherForecasts
-    }
-    
-    // Query utility method
-    func query(url: String, completion: @escaping (Data?, URLResponse?, Error?) -> ())
-    {
-        if let url = URL(string: url)
-        {
-            let request = URLRequest(url: url, cachePolicy: .reloadIgnoringLocalAndRemoteCacheData, timeoutInterval: GlobalConstants.Config.RequestTimeoutInterval)
-            let query = URLSession.shared.dataTask(with: request, completionHandler: completion)
-            query.resume()
-        }
     }
 }

@@ -9,6 +9,7 @@
 import Foundation
 import Network
 import os.log
+import PromiseKit
 
 // View protocol
 protocol WeatherForecastView
@@ -51,23 +52,14 @@ class WeatherForecastPresenter
         if let path = Reachability.instance.currentPath, path.status == .satisfied
         {
             // if so, ask the weather forecast service to give us a list of forecasts
-            weatherForecastService.getWeatherForecastsForLocation(location: location)
-            {
-                (hourlyForecasts: [HourlyWeatherForecast]?, error: WeatherForeCastServiceError?) in
-                // Error !
-                if error != nil
-                {
-                    os_log("Service returned an error", log: OSLog.default, type: .debug)
-                    // Try to show some data anyway
-                    self.createWeatherForecastBOAndFeedView()
-                    return
-                }
-                if let forecasts = hourlyForecasts, forecasts.isEmpty == false
+            self.weatherForecastService.getWeatherForecastsForLocation(location: location)
+            .done{ forecasts in
+                if let hourlyForecasts = forecasts, hourlyForecasts.isEmpty == false
                 {
                     // Cleanup the previously stored data
                     self.weatherForecastData.cleanUp()
                     // Add each forecast to the model
-                    for forecast in forecasts
+                    for forecast in hourlyForecasts
                     {
                         self.weatherForecastData.addHourlyForecast(forecast: forecast)
                     }
@@ -75,13 +67,16 @@ class WeatherForecastPresenter
                     self.weatherForecastData.saveOnDisk()
                     self.createWeatherForecastBOAndFeedView()
                 }
-                else
-                {
-                    self.createWeatherForecastBOAndFeedView()
-                }
+            }
+            .catch
+            {
+                error in
+                // Try to show some data anyway
+                os_log("Weather service triggered an error, attempting to parse local data", log: OSLog.default, type: .error)
+                
+                self.createWeatherForecastBOAndFeedView()
             }
         }
-        // NO internet, try to show saved data
         else
         {
             self.createWeatherForecastBOAndFeedView()
